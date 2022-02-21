@@ -6,7 +6,7 @@
   3) Data is populated in staging.orders table ( same postgres DB as items table). On top of this table we can write our queries. <br>
   
 
-<b4> Steps to run project </b4>
+<b4><b> Steps to run project </b></b4>
   1) Download project into your local system. <br>
   2) From root folder run below dockercommand (5 containers and 1 bridge will be created). <br> <b> docker-compose -f docker-compose.yml up -d </b><br><br> ![source-data](./img/docker_compose_run.png) <br><br>
   3) Once container are up we can cross check container <br> spark: <b>http://localhost:8080/</b> <br> livy : <b>http://localhost:8998/</b> <br> postgres : ```sql<br>
