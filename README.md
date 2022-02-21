@@ -9,7 +9,10 @@
 <b4> Steps to run project </b4>
   1) Download project into your local system. <br>
   2) From root folder run below dockercommand (5 containers and 1 bridge will be created). <br> <b> docker-compose -f docker-compose.yml up -d </b><br><br> ![source-data](./img/docker_compose_run.png) <br><br>
-  4) Run below command to trigger job. <br> <b> docker exec -it livy  /bin/bash /usr/local/bin/livysparkrun.sh </b><br><br> ![source-data](./img/livycommand.png) <br><br>
+  3) Once container are up we can cross check container <br> spark: <b>http://localhost:8080/</b> <br> livy : <b>http://localhost:8998/</b> <br> postgres : ```sql<br>
+-- connect with <br>
+-- jdbc:postgresql://localhost:5432/store?user=etl_client&password=etl_client_pwd<br>
+  4) Run below command to trigger spark job using REST API. <br> <b> docker exec -it livy  /bin/bash /usr/local/bin/livysparkrun.sh </b><br><br> ![source-data](./img/livycommand.png) <br><br>
   5) We can check data in <b> select * from staging.orders </b> table . <br><br> ![source-data](./img/postgresData.png) <br><br>
     
   
