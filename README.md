@@ -4,7 +4,8 @@
   1) Tools used for processing are Apache spark for processing, postgres for storage, Apache livy for running spark job using rest api.<br>
   2) Fetched data from postgres and restapi andcreated staging.orders table by joining the two dataset based on 'item_id' <br>
   3) Data is populated in staging.orders table ( same postgres DB as items table). On top of this table we can write our queries. <br>
-  
+  4) For Data Assurance I have written test case in scala to verify department in item table is present in item_department. 
+
 
 <b4><b> Steps to run project </b></b4>
   1) Download project into your local system. <br>
