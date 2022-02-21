@@ -1,0 +1,113 @@
+version: '3.9'
+networks:
+  spark:
+    name: spark
+services:
+  mockServer:
+    image: mockserver/mockserver:mockserver-5.12.0
+    ports:
+      - 1080:1080
+    environment:
+      MOCKSERVER_WATCH_INITIALIZATION_JSON: "true"
+      MOCKSERVER_PROPERTY_FILE: /config/mockserver.properties
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/initializerJson.json
+    container_name: mock_server
+    volumes:
+      - ./sourcedata/api:/config
+    networks:
+      - spark
+
+  postgres:
+    image: postgres:14.2-alpine
+    environment:
+      - POSTGRES_USER=etl_client
+      - POSTGRES_PASSWORD=etl_client_pwd
+      - POSTGRES_DB=store
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./sourcedata/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "store", "-U", "etl_client" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    container_name: postgres-1
+    networks:
+      - spark
+  spark-master:
+    image: docker.io/bitnami/spark:2
+    hostname: master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    volumes:
+      - ./conf/log4j.properties:/opt/bitnami/spark/log4j.properties
+      - ./spark/goodsstoreetl_2.11-0.1.jar:/opt/bitnami/spark/goodsstoreetl_2.11-0.1.jar
+      - ./spark/postgresql-42.3.3.jar:/opt/bitnami/spark/postgresql-42.3.3.jar
+      - ./spark/scalaj-http_2.11-2.3.0.jar:/opt/bitnami/spark/scalaj-http_2.11-2.3.0.jar
+      - ./spark/mockito-scala_2.11-1.16.23.jar:/opt/bitnami/spark/mockito-scala_2.11-1.16.23.jar
+      - ./spark/config-1.4.1.jar:/opt/bitnami/spark/config-1.4.1.jar
+      - ./spark/application.conf:/opt/bitnami/spark/application.conf
+    container_name: spark_master
+    ports:
+      - '8080:8080'
+      - '7077:7077'
+    networks:
+      - spark
+    depends_on:
+      - postgres
+      - mock_server
+
+  spark-worker:
+    image: docker.io/bitnami/spark:2
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    volumes:
+      - ./conf/log4j.properties:/opt/bitnami/spark/conf/log4j.properties
+    ports:
+      - '8081:8081'
+    container_name: spark_datanode
+    networks:
+      - spark
+    depends_on:
+      - spark-master
+      - postgres
+      - mock_server
+  livy:
+    image: renien/spark-stand-alone-livy
+    container_name: livy
+    environment:
+      - SPARK_MASTER_ENDPOINT=spark-master
+      - SPARK_MASTER_PORT=7077
+      - LIVY_FILE_LOCAL_DIR_WHITELIST=/opt/bitnami/spark
+    ports:
+      - 8998:8998
+      - 4040:4040
+    volumes:
+      - ./conf/log4j.properties:/opt/bitnami/spark/log4j.properties
+      - ./conf/livy.conf.extra:/usr/local/bin/livy.conf.extra
+      - ./spark/goodsstoreetl_2.11-0.1.jar:/opt/bitnami/spark/goodsstoreetl_2.11-0.1.jar
+      - ./spark/postgresql-42.3.3.jar:/opt/bitnami/spark/postgresql-42.3.3.jar
+      - ./spark/scalaj-http_2.11-2.3.0.jar:/opt/bitnami/spark/scalaj-http_2.11-2.3.0.jar
+      - ./spark/mockito-scala_2.11-1.16.23.jar:/opt/bitnami/spark/mockito-scala_2.11-1.16.23.jar
+      - ./spark/config-1.4.1.jar:/opt/bitnami/spark/config-1.4.1.jar
+      - ./spark/application.conf:/opt/bitnami/spark/application.conf
+      - ./spark/livysparkrun.sh:/usr/local/bin/livysparkrun.sh
+    networks:
+      - spark
+    depends_on:
+      - spark-master
+      - spark-worker
+    command: bash -c "livysparkrun.sh"
+    

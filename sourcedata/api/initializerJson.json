@@ -1,0 +1,12 @@
+[
+  {
+    "httpRequest" : {
+      "method" : "GET",
+      "path" : "/api/v1/orders"
+    },
+    "httpResponse" : {
+      "body" : "[{\"created\": \"2022-02-14 00:14:39.000000\", \"customer\": \"customer1@email.cze\", \"item_id\": 1}, {\"created\": \"2022-06-14 10:15:42.000000\", \"customer\": \"customer1@email.cze\", \"item_id\": 5}, {\"created\": \"2022-02-05 13:16:10.000000\", \"customer\": \"customer2@email.cze\", \"item_id\": 4}, {\"created\": \"2022-02-05 13:16:08.000000\", \"customer\": \"customer2@email.cze\", \"item_id\": 5}, {\"created\": \"2021-02-14 11:17:54.000000\", \"customer\": \"customer3@email.deu\", \"item_id\": 3}, {\"created\": \"2021-03-14 10:18:21.000000\", \"customer\": \"customer4@email.fra\", \"item_id\": 5}]",
+      "statusCode": 200
+    }
+  }
+]
